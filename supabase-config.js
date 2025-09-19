@@ -2,9 +2,15 @@
 const SUPABASE_URL = 'https://qxvymiorlyfwaykwglwe.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4dnltaW9ybHlmd2F5a3dnbHdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMjk1NzcsImV4cCI6MjA3MzgwNTU3N30.Mk8NzyFuTT3QNNcuwIdjWM45w1OxC4sBI_ShntbYkfY';
 
-// Initialize Supabase client
-const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Initialize Supabase client (avoid redeclaration)
+let supabaseClient;
+if (!window.supabaseClient) {
+    const { createClient } = supabase;
+    supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.supabaseClient = supabaseClient;
+} else {
+    supabaseClient = window.supabaseClient;
+}
 
 // Authentication functions
 class AuthManager {
@@ -409,4 +415,3 @@ class AdminManager {
 window.AuthManager = AuthManager;
 window.GameDataManager = GameDataManager;
 window.AdminManager = AdminManager;
-window.supabaseClient = supabaseClient;
