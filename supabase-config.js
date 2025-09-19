@@ -2,21 +2,17 @@
 const SUPABASE_URL = 'https://qxvymiorlyfwaykwglwe.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF4dnltaW9ybHlmd2F5a3dnbHdlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgyMjk1NzcsImV4cCI6MjA3MzgwNTU3N30.Mk8NzyFuTT3QNNcuwIdjWM45w1OxC4sBI_ShntbYkfY';
 
-// Initialize Supabase client (avoid redeclaration)
-let supabaseClient;
-if (!window.supabaseClient) {
+// Initialize Supabase client (only if not already created)
+if (typeof supabaseClient === 'undefined') {
     const { createClient } = supabase;
-    supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    window.supabaseClient = supabaseClient;
-} else {
-    supabaseClient = window.supabaseClient;
+    window.supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
 // Authentication functions
 class AuthManager {
     static async signUp(email, password, username) {
         try {
-            const { data, error } = await supabaseClient.auth.signUp({
+            const { data, error } = await window.supabaseClient.auth.signUp({
                 email,
                 password,
                 options: {
@@ -30,7 +26,7 @@ class AuthManager {
             
             // Create user record in our users table with role 0 (regular user)
             if (data.user) {
-                const { error: userError } = await supabaseClient
+                const { error: userError } = await window.supabaseClient
                     .from('users')
                     .insert({
                         id: data.user.id,
@@ -52,7 +48,7 @@ class AuthManager {
 
     static async signIn(email, password) {
         try {
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
+            const { data, error } = await window.supabaseClient.auth.signInWithPassword({
                 email,
                 password
             });
@@ -66,7 +62,7 @@ class AuthManager {
 
     static async signOut() {
         try {
-            const { error } = await supabaseClient.auth.signOut();
+            const { error } = await window.supabaseClient.auth.signOut();
             if (error) throw error;
             return { success: true };
         } catch (error) {
@@ -76,7 +72,7 @@ class AuthManager {
 
     static async getCurrentUser() {
         try {
-            const { data: { user } } = await supabaseClient.auth.getUser();
+            const { data: { user } } = await window.supabaseClient.auth.getUser();
             return user;
         } catch (error) {
             return null;
@@ -85,7 +81,7 @@ class AuthManager {
 
     static async getCurrentSession() {
         try {
-            const { data: { session } } = await supabaseClient.auth.getSession();
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
             return session;
         } catch (error) {
             return null;
@@ -161,7 +157,7 @@ class GameDataManager {
                 return saved ? JSON.parse(saved) : null;
             }
 
-            const { data, error } = await supabaseClient
+            const { data, error } = await window.supabaseClient
                 .from('game_saves')
                 .select('*')
                 .eq('user_id', user.id)
@@ -197,7 +193,7 @@ class GameDataManager {
 
     static async getLeaderboard() {
         try {
-            const { data, error } = await supabaseClient
+            const { data, error } = await window.supabaseClient
                 .from('leaderboard')
                 .select('*')
                 .limit(10);
@@ -232,7 +228,7 @@ class GameDataManager {
 class AdminManager {
     static async adminLogin(username, password) {
         try {
-            const { data, error } = await supabaseClient
+            const { data, error } = await window.supabaseClient
                 .from('admin_users')
                 .select('*')
                 .eq('username', username)
@@ -261,7 +257,7 @@ class AdminManager {
 
     static async getAllUsers() {
         try {
-            const { data, error } = await supabaseClient
+            const { data, error } = await window.supabaseClient
                 .from('users')
                 .select(`
                     *,
@@ -284,7 +280,7 @@ class AdminManager {
 
     static async updateUser(userId, updates) {
         try {
-            const { error } = await supabaseClient
+            const { error } = await window.supabaseClient
                 .from('users')
                 .update(updates)
                 .eq('id', userId);
@@ -298,7 +294,7 @@ class AdminManager {
 
     static async updateUserGameData(userId, gameData) {
         try {
-            const { error } = await supabaseClient
+            const { error } = await window.supabaseClient
                 .from('game_saves')
                 .update(gameData)
                 .eq('user_id', userId);
@@ -312,7 +308,7 @@ class AdminManager {
 
     static async banUser(userId, reason) {
         try {
-            const { error } = await supabaseClient
+            const { error } = await window.supabaseClient
                 .from('users')
                 .update({
                     is_banned: true,
@@ -330,7 +326,7 @@ class AdminManager {
 
     static async unbanUser(userId) {
         try {
-            const { error } = await supabaseClient
+            const { error } = await window.supabaseClient
                 .from('users')
                 .update({
                     is_banned: false,
@@ -348,7 +344,7 @@ class AdminManager {
 
     static async createEvent(eventData) {
         try {
-            const { data, error } = await supabaseClient
+            const { data, error } = await window.supabaseClient
                 .from('events')
                 .insert(eventData)
                 .select()
@@ -363,7 +359,7 @@ class AdminManager {
 
     static async getEvents() {
         try {
-            const { data, error } = await supabaseClient
+            const { data, error } = await window.supabaseClient
                 .from('events')
                 .select('*')
                 .order('created_at', { ascending: false });
@@ -378,7 +374,7 @@ class AdminManager {
 
     static async endEvent(eventId) {
         try {
-            const { error } = await supabaseClient
+            const { error } = await window.supabaseClient
                 .from('events')
                 .update({ is_active: false })
                 .eq('id', eventId);
@@ -392,7 +388,7 @@ class AdminManager {
 
     static async getActivityLogs(limit = 50) {
         try {
-            const { data, error } = await supabaseClient
+            const { data, error } = await window.supabaseClient
                 .from('activity_logs')
                 .select(`
                     *,
@@ -415,3 +411,4 @@ class AdminManager {
 window.AuthManager = AuthManager;
 window.GameDataManager = GameDataManager;
 window.AdminManager = AdminManager;
+window.supabaseClient = supabaseClient;
