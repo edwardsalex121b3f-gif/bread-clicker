@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bread Clicker - The Ultimate Bakery Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .landing-container {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .logo {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .title {
+            color: #8B4513;
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #A0522D;
+            font-size: 1.2em;
+            margin-bottom: 40px;
+        }
+
+        .description {
+            color: #666;
+            font-size: 1em;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            margin: 10px;
+            background: #8B4513;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #A0522D;
+        }
+
+        .btn-secondary {
+            background: #DEB887;
+            color: #8B4513;
+        }
+
+        .btn-secondary:hover {
+            background: #DAA520;
+        }
+
+        .features {
+            margin-top: 40px;
+            text-align: left;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            color: #666;
+        }
+
+        .feature-icon {
+            font-size: 1.5em;
+            margin-right: 15px;
+            width: 30px;
+        }
+
+        @media (max-width: 480px) {
+            .landing-container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+            
+            .title {
+                font-size: 2em;
+            }
+            
+            .btn {
+                display: block;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="landing-container">
+        <div class="logo">🍞</div>
+        <h1 class="title">Bread Clicker</h1>
+        <p class="subtitle">The Ultimate Bakery Adventure!</p>
+        
+        <p class="description">
+            Click to bake bread, upgrade your bakery, and become the ultimate bread master! 
+            Join thousands of players in this addictive idle clicker game.
+        </p>
+
+        <a href="index-supabase.html" class="btn">Play Game</a>
+        <a href="login.html" class="btn btn-secondary">Login</a>
+
+        <div class="features">
+            <div class="feature">
+                <span class="feature-icon">🎯</span>
+                <span>Click to bake bread and earn points</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">⬆️</span>
+                <span>Buy upgrades to increase production</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🏪</span>
+                <span>Shop for special bread types</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🌟</span>
+                <span>Prestige system for permanent bonuses</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🏆</span>
+                <span>Compete on global leaderboards</span>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">🎉</span>
+                <span>Unlock achievements and rewards</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

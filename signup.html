@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Bread Clicker</title>
+    <!-- Include Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Include our Supabase config -->
+    <script src="supabase-config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .title {
+            color: #8B4513;
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #A0522D;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #8B4513;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #DEB887;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #8B4513;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            background: #8B4513;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .btn:hover {
+            background: #A0522D;
+        }
+
+        .btn-secondary {
+            background: #DEB887;
+            color: #8B4513;
+        }
+
+        .btn-secondary:hover {
+            background: #DAA520;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #ffcdd2;
+        }
+
+        .success-message {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border: 1px solid #c8e6c9;
+        }
+
+        .link {
+            color: #8B4513;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .link:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            display: none;
+            color: #8B4513;
+            font-style: italic;
+        }
+
+        .divider {
+            margin: 20px 0;
+            text-align: center;
+            color: #A0522D;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #DEB887;
+        }
+
+        .divider span {
+            background: white;
+            padding: 0 15px;
+        }
+
+        .back-to-game {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #8B4513;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .back-to-game:hover {
+            background: white;
+        }
+
+        .password-requirements {
+            font-size: 0.8em;
+            color: #A0522D;
+            margin-top: 5px;
+        }
+
+        .requirement {
+            margin: 2px 0;
+        }
+
+        .requirement.met {
+            color: #2e7d32;
+        }
+
+        .requirement.unmet {
+            color: #c62828;
+        }
+
+        @media (max-width: 480px) {
+            .auth-container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+            
+            .back-to-game {
+                position: static;
+                display: inline-block;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="index-supabase.html" class="back-to-game">← Back to Game</a>
+    
+    <div class="auth-container">
+        <div class="logo">🍞</div>
+        <h1 class="title">Bread Clicker</h1>
+        <p class="subtitle">Join the bakery adventure!</p>
+
+        <form id="signupForm">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" required placeholder="Choose a username" minlength="3" maxlength="20">
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required placeholder="Enter your email">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" required placeholder="Create a password" minlength="6">
+                <div class="password-requirements" id="passwordRequirements">
+                    <div class="requirement" id="length">• At least 6 characters</div>
+                    <div class="requirement" id="uppercase">• One uppercase letter</div>
+                    <div class="requirement" id="lowercase">• One lowercase letter</div>
+                    <div class="requirement" id="number">• One number</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirmPassword">Confirm Password:</label>
+                <input type="password" id="confirmPassword" required placeholder="Confirm your password">
+            </div>
+
+            <button type="submit" class="btn">Create Account</button>
+            <div class="loading" id="loading">Creating account...</div>
+        </form>
+
+        <div id="errorMessage" class="error-message" style="display: none;"></div>
+        <div id="successMessage" class="success-message" style="display: none;"></div>
+
+        <div class="divider">
+            <span>Already have an account?</span>
+        </div>
+
+        <a href="login.html" class="btn btn-secondary">Login</a>
+
+        <div style="margin-top: 20px; font-size: 0.8em; color: #A0522D;">
+            By creating an account, you agree to our Terms of Service and Privacy Policy.
+        </div>
+    </div>
+
+    <script>
+        // Password validation
+        function validatePassword(password) {
+            const requirements = {
+                length: password.length >= 6,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /\d/.test(password)
+            };
+            
+            // Update visual indicators
+            Object.keys(requirements).forEach(req => {
+                const element = document.getElementById(req);
+                if (requirements[req]) {
+                    element.classList.add('met');
+                    element.classList.remove('unmet');
+                } else {
+                    element.classList.add('unmet');
+                    element.classList.remove('met');
+                }
+            });
+            
+            return Object.values(requirements).every(req => req);
+        }
+
+        // Check if passwords match
+        function passwordsMatch() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            return password === confirmPassword;
+        }
+
+        // Add event listeners for password validation
+        document.getElementById('password').addEventListener('input', function() {
+            validatePassword(this.value);
+        });
+
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            if (this.value && !passwordsMatch()) {
+                this.style.borderColor = '#c62828';
+            } else {
+                this.style.borderColor = '#DEB887';
+            }
+        });
+
+        // Handle signup form submission
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Validate inputs
+            if (!username || !email || !password || !confirmPassword) {
+                showError('Please fill in all fields.');
+                return;
+            }
+            
+            if (username.length < 3 || username.length > 20) {
+                showError('Username must be between 3 and 20 characters.');
+                return;
+            }
+            
+            if (!validatePassword(password)) {
+                showError('Password does not meet requirements.');
+                return;
+            }
+            
+            if (!passwordsMatch()) {
+                showError('Passwords do not match.');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'none';
+            
+            try {
+                const result = await AuthManager.signUp(email, password, username);
+                
+                if (result.success) {
+                    // Show success message
+                    document.getElementById('successMessage').innerHTML = `
+                        Account created successfully!<br>
+                        Please check your email to verify your account before logging in.
+                    `;
+                    document.getElementById('successMessage').style.display = 'block';
+                    
+                    // Clear form
+                    document.getElementById('signupForm').reset();
+                    
+                    // Redirect to login after a delay
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 3000);
+                } else {
+                    // Show error message
+                    showError(result.error);
+                }
+            } catch (error) {
+                showError('An unexpected error occurred. Please try again.');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        });
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorMessage').style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            document.getElementById('successMessage').textContent = message;
+            document.getElementById('successMessage').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // Initialize when page loads
+        window.onload = async function() {
+            try {
+                // Check if user is already logged in
+                const user = await AuthManager.getCurrentUser();
+                if (user) {
+                    // Redirect to game
+                    window.location.href = 'index-supabase.html';
+                    return;
+                }
+            } catch (error) {
+                console.error('Error checking auth:', error);
+            }
+        };
+    </script>
+</body>
+</html>

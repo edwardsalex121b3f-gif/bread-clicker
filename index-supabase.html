@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bread Clicker - The Ultimate Bakery Adventure</title>
+    <!-- Include Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <!-- Include our Supabase config -->
+    <script src="supabase-config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-size: 2em;
+            font-weight: bold;
+            color: #8B4513;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+        }
+
+        .logo.admin-access {
+            position: relative;
+        }
+
+        .logo.admin-access::after {
+            content: "👑";
+            position: absolute;
+            top: -5px;
+            right: -10px;
+            font-size: 0.5em;
+            opacity: 0.7;
+        }
+
+        .auth-section {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .user-name {
+            color: #8B4513;
+            font-weight: bold;
+        }
+
+        .btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #ff5252;
+        }
+
+        .btn-success {
+            background: #2ed573;
+        }
+
+        .btn-success:hover {
+            background: #26d065;
+        }
+
+        .stats-bar {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .stat-item {
+            background: #FFE4B5;
+            border: 2px solid #DEB887;
+            border-radius: 10px;
+            padding: 8px 15px;
+            font-weight: bold;
+            color: #8B4513;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        .game-area {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .bread-display {
+            font-size: 3em;
+            color: #8B4513;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .bread-button {
+            background: #FFD700;
+            border: 5px solid #FFA500;
+            border-radius: 50%;
+            width: 250px;
+            height: 250px;
+            font-size: 5em;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bread-button:hover {
+            background: #FFA500;
+            transform: scale(1.05);
+        }
+
+        .bread-button:active {
+            transform: scale(0.95);
+            background: #FF8C00;
+        }
+
+        .click-effect {
+            position: absolute;
+            font-size: 2em;
+            color: #FFD700;
+            font-weight: bold;
+            pointer-events: none;
+            animation: clickFloat 1s ease-out forwards;
+        }
+
+        @keyframes clickFloat {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) scale(1.5);
+            }
+        }
+
+        .production-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .production-stat {
+            background: #F0E68C;
+            border: 2px solid #DAA520;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .production-stat h3 {
+            color: #8B4513;
+            margin-bottom: 5px;
+        }
+
+        .production-stat .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #A0522D;
+        }
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel h2 {
+            color: #8B4513;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid #DEB887;
+            padding-bottom: 5px;
+        }
+
+        .upgrade-item {
+            background: #FFF8DC;
+            border: 2px solid #DAA520;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upgrade-item:hover {
+            background: #FFE4B5;
+            transform: translateY(-2px);
+        }
+
+        .upgrade-item.affordable {
+            border-color: #32CD32;
+            background: #F0FFF0;
+        }
+
+        .upgrade-item.affordable:hover {
+            background: #E6FFE6;
+        }
+
+        .upgrade-name {
+            font-weight: bold;
+            color: #8B4513;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-description {
+            font-size: 0.9em;
+            color: #A0522D;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-cost {
+            font-weight: bold;
+            color: #FF6B6B;
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .shop-item {
+            background: #FFF8DC;
+            border: 2px solid #DAA520;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .shop-item:hover {
+            background: #FFE4B5;
+        }
+
+        .shop-item.affordable {
+            border-color: #32CD32;
+            background: #F0FFF0;
+        }
+
+        .shop-item img {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .shop-item-name {
+            font-weight: bold;
+            color: #8B4513;
+            font-size: 0.9em;
+        }
+
+        .shop-item-cost {
+            color: #FF6B6B;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .prestige-panel {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #8B4513;
+            border: 3px solid #DAA520;
+        }
+
+        .prestige-button {
+            background: #8B4513;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 15px 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .prestige-button:hover {
+            background: #A0522D;
+        }
+
+        .prestige-button:disabled {
+            background: #CCCCCC;
+            cursor: not-allowed;
+        }
+
+        .achievements {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .achievement {
+            background: #FFE4B5;
+            border: 1px solid #DEB887;
+            border-radius: 5px;
+            padding: 8px;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .achievement.unlocked {
+            background: #90EE90;
+            border-color: #32CD32;
+        }
+
+        .achievement.rare {
+            background: #FFD700;
+            border-color: #FFA500;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #DEB887;
+        }
+
+        .tab {
+            background: #F0E68C;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px 5px 0 0;
+            margin-right: 5px;
+            font-weight: bold;
+            color: #8B4513;
+        }
+
+        .tab.active {
+            background: #FFE4B5;
+            border-bottom: 2px solid #8B4513;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .notification {
+            position: fixed;
+            top: 100px;
+            right: 20px;
+            background: #32CD32;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .leaderboard {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #DEB887;
+        }
+
+        .leaderboard-rank {
+            font-weight: bold;
+            color: #8B4513;
+        }
+
+        .leaderboard-name {
+            color: #A0522D;
+        }
+
+        .leaderboard-score {
+            font-weight: bold;
+            color: #FF6B6B;
+        }
+
+        /* Auth Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 400px;
+            border: 2px solid #ff6b6b;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close {
+            color: #ff6b6b;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #ff5252;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #8B4513;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #DEB887;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 10px;
+            background: #F0E68C;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            color: #8B4513;
+        }
+
+        .auth-tab.active {
+            background: #FFE4B5;
+        }
+
+        .error-message {
+            color: #ff4757;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .stats-bar {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .bread-button {
+                width: 200px;
+                height: 200px;
+                font-size: 4em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🍞 Bread Clicker</div>
+            <div class="auth-section">
+                <div id="userInfo" class="user-info" style="display: none;">
+                    <span class="user-name" id="userName">Player</span>
+                    <button class="btn" onclick="logout()">Logout</button>
+                </div>
+                <div id="authButtons">
+                    <button class="btn" onclick="showAuthModal()">Login/Register</button>
+                </div>
+                <div class="stats-bar">
+                    <div class="stat-item">Bread: <span id="totalBread">0</span></div>
+                    <div class="stat-item">Prestige: <span id="prestigeLevel">0</span></div>
+                    <div class="stat-item">Level: <span id="playerLevel">1</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="game-area">
+            <div class="bread-display">
+                <div>Total Bread: <span id="breadCount">0</span></div>
+                <div style="font-size: 0.6em; color: #A0522D;">+<span id="breadPerClick">1</span> per click</div>
+            </div>
+
+            <button class="bread-button" id="breadButton" onclick="clickBread()">🍞</button>
+
+            <div class="production-stats">
+                <div class="production-stat">
+                    <h3>Bread per Click</h3>
+                    <div class="value" id="clickPower">1</div>
+                </div>
+                <div class="production-stat">
+                    <h3>Bread per Second</h3>
+                    <div class="value" id="breadPerSecond">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="panel">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab('upgrades')">Upgrades</button>
+                    <button class="tab" onclick="switchTab('shop')">Shop</button>
+                    <button class="tab" onclick="switchTab('achievements')">Achievements</button>
+                </div>
+
+                <div id="upgrades" class="tab-content active">
+                    <h2>Click Upgrades</h2>
+                    <div id="clickUpgrades"></div>
+                    
+                    <h2>Auto Bakers</h2>
+                    <div id="autoUpgrades"></div>
+                </div>
+
+                <div id="shop" class="tab-content">
+                    <h2>Bread Shop</h2>
+                    <div class="shop-grid" id="breadShop"></div>
+                </div>
+
+                <div id="achievements" class="tab-content">
+                    <h2>Achievements</h2>
+                    <div class="achievements" id="achievementsList"></div>
+                </div>
+            </div>
+
+            <div class="panel prestige-panel">
+                <h2>🌟 Prestige</h2>
+                <p>Reset your progress for permanent bonuses!</p>
+                <div>Current Multiplier: <span id="prestigeMultiplier">1x</span></div>
+                <div>Next Prestige at: <span id="prestigeRequirement">1,000,000</span> bread</div>
+                <button class="prestige-button" id="prestigeButton" onclick="prestige()" disabled>
+                    Prestige (0x)
+                </button>
+            </div>
+
+            <div class="panel">
+                <h2>🏆 Leaderboard</h2>
+                <div class="leaderboard" id="leaderboard"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Login / Register</h2>
+                <span class="close" onclick="closeAuthModal()">&times;</span>
+            </div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+                <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+            </div>
+
+            <form id="loginForm" class="auth-form">
+                <div class="form-group">
+                    <label for="loginEmail">Email:</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password:</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit" class="btn btn-success" style="width: 100%;">Login</button>
+                <div id="loginError" class="error-message"></div>
+            </form>
+
+            <form id="registerForm" class="auth-form" style="display: none;">
+                <div class="form-group">
+                    <label for="registerUsername">Username:</label>
+                    <input type="text" id="registerUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">Email:</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">Password:</label>
+                    <input type="password" id="registerPassword" required>
+                </div>
+                <button type="submit" class="btn btn-success" style="width: 100%;">Register</button>
+                <div id="registerError" class="error-message"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            bread: 0,
+            totalBread: 0,
+            breadPerClick: 1,
+            breadPerSecond: 0,
+            prestigeLevel: 0,
+            prestigeMultiplier: 1,
+            playerLevel: 1,
+            experience: 0,
+            upgrades: {
+                click: {},
+                auto: {}
+            },
+            shop: {},
+            achievements: new Set(),
+            stats: {
+                totalClicks: 0,
+                timePlayed: 0,
+                startTime: Date.now()
+            }
+        };
+
+        let currentUser = null;
+        let isAuthenticated = false;
+        let userRole = 0; // 0 = user, 1 = admin
+
+        // Upgrade Definitions (same as before)
+        const clickUpgrades = [
+            { id: 'basic_knife', name: 'Basic Knife', description: '+1 bread per click', bonus: 1, cost: 50, emoji: '🔪' },
+            { id: 'golden_spatula', name: 'Golden Spatula', description: '+2 bread per click', bonus: 2, cost: 150, emoji: '🥄' },
+            { id: 'chefs_rolling_pin', name: "Chef's Rolling Pin", description: '+5 bread per click', bonus: 5, cost: 500, emoji: '🥖' },
+            { id: 'master_oven_mitts', name: 'Master Oven Mitts', description: '+10 bread per click', bonus: 10, cost: 1500, emoji: '🧤' },
+            { id: 'magic_flour_sprinkle', name: 'Magic Flour Sprinkle', description: '+20 bread per click', bonus: 20, cost: 5000, emoji: '✨' },
+            { id: 'enchanted_yeast', name: 'Enchanted Yeast', description: '+50 bread per click', bonus: 50, cost: 15000, emoji: '🧪' }
+        ];
+
+        const autoUpgrades = [
+            { id: 'apprentice_baker', name: 'Apprentice Baker', description: 'Bakes 1 bread per second', production: 1, cost: 100, emoji: '👨‍🍳' },
+            { id: 'skilled_baker', name: 'Skilled Baker', description: 'Bakes 5 bread per second', production: 5, cost: 500, emoji: '👩‍🍳' },
+            { id: 'master_baker', name: 'Master Baker', description: 'Bakes 15 bread per second', production: 15, cost: 2000, emoji: '🧑‍🍳' },
+            { id: 'bread_factory', name: 'Bread Factory', description: 'Bakes 50 bread per second', production: 50, cost: 10000, emoji: '🏭' },
+            { id: 'bread_empire', name: 'Bread Empire', description: 'Bakes 200 bread per second', production: 200, cost: 50000, emoji: '🏰' }
+        ];
+
+        const breadShop = [
+            { id: 'sourdough', name: 'Sourdough', description: '2x click power', multiplier: 2, cost: 1000, emoji: '🥖' },
+            { id: 'bagel', name: 'Bagel', description: '1.5x auto production', multiplier: 1.5, cost: 2500, emoji: '🥯' },
+            { id: 'croissant', name: 'Croissant', description: '3x click power', multiplier: 3, cost: 5000, emoji: '🥐' },
+            { id: 'pretzel', name: 'Pretzel', description: '2x auto production', multiplier: 2, cost: 10000, emoji: '🥨' },
+            { id: 'donut', name: 'Donut', description: '5x click power', multiplier: 5, cost: 25000, emoji: '🍩' },
+            { id: 'muffin', name: 'Muffin', description: '3x auto production', multiplier: 3, cost: 50000, emoji: '🧁' }
+        ];
+
+        const achievements = [
+            { id: 'first_click', name: 'First Click', description: 'Click the bread once', requirement: 1, type: 'clicks', emoji: '🎯' },
+            { id: 'hundred_clicks', name: 'Click Master', description: 'Click 100 times', requirement: 100, type: 'clicks', emoji: '👆' },
+            { id: 'thousand_clicks', name: 'Click Legend', description: 'Click 1,000 times', requirement: 1000, type: 'clicks', emoji: '🖱️' },
+            { id: 'ten_bread', name: 'Bread Starter', description: 'Collect 10 bread', requirement: 10, type: 'bread', emoji: '🥖' },
+            { id: 'hundred_bread', name: 'Bread Collector', description: 'Collect 100 bread', requirement: 100, type: 'bread', emoji: '🍞' },
+            { id: 'thousand_bread', name: 'Bread Master', description: 'Collect 1,000 bread', requirement: 1000, type: 'bread', emoji: '🥐' },
+            { id: 'first_upgrade', name: 'Upgrade Novice', description: 'Buy your first upgrade', requirement: 1, type: 'upgrades', emoji: '⬆️' },
+            { id: 'first_auto', name: 'Automation', description: 'Buy your first auto-baker', requirement: 1, type: 'auto', emoji: '🤖' },
+            { id: 'first_prestige', name: 'Prestige Master', description: 'Complete your first prestige', requirement: 1, type: 'prestige', emoji: '🌟' }
+        ];
+
+        // Initialize Game
+        async function initGame() {
+            // Check authentication
+            await checkAuth();
+            
+            // Load game data
+            await loadGame();
+            
+            // Update display
+            updateDisplay();
+            renderUpgrades();
+            renderShop();
+            renderAchievements();
+            await renderLeaderboard();
+            
+            // Start game loop
+            startGameLoop();
+        }
+
+        // Authentication Functions
+        async function checkAuth() {
+            try {
+                const user = await AuthManager.getCurrentUser();
+                if (user) {
+                    currentUser = user;
+                    isAuthenticated = true;
+                    
+                    // Get user role from database
+                    await getUserRole();
+                    updateAuthUI();
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+            }
+        }
+
+        // Get user role from database
+        async function getUserRole() {
+            try {
+                if (!currentUser) return;
+                
+                const { data, error } = await supabaseClient
+                    .from('users')
+                    .select('role')
+                    .eq('id', currentUser.id)
+                    .single();
+                
+                if (data) {
+                    userRole = data.role || 0;
+                }
+            } catch (error) {
+                console.error('Error getting user role:', error);
+                userRole = 0; // Default to user role
+            }
+        }
+
+        function updateAuthUI() {
+            if (isAuthenticated && currentUser) {
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('authButtons').style.display = 'none';
+                document.getElementById('userName').textContent = currentUser.user_metadata?.username || currentUser.email;
+                
+                // Update logo for admin access
+                const logo = document.querySelector('.logo');
+                if (userRole === 1) {
+                    logo.classList.add('admin-access');
+                    logo.title = 'Click to access Admin Panel';
+                } else {
+                    logo.classList.remove('admin-access');
+                    logo.title = 'Bread Clicker';
+                }
+            } else {
+                document.getElementById('userInfo').style.display = 'none';
+                document.getElementById('authButtons').style.display = 'block';
+                
+                // Remove admin access from logo
+                const logo = document.querySelector('.logo');
+                logo.classList.remove('admin-access');
+                logo.title = 'Bread Clicker';
+            }
+        }
+
+        async function showAuthModal() {
+            document.getElementById('authModal').style.display = 'block';
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+            clearAuthErrors();
+        }
+
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.style.display = 'none');
+            
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Form').style.display = 'block';
+            clearAuthErrors();
+        }
+
+        function clearAuthErrors() {
+            document.getElementById('loginError').textContent = '';
+            document.getElementById('registerError').textContent = '';
+        }
+
+        // Login Form Handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const result = await AuthManager.signIn(email, password);
+            if (result.success) {
+                currentUser = result.data.user;
+                isAuthenticated = true;
+                updateAuthUI();
+                closeAuthModal();
+                await loadGame(); // Reload game data for authenticated user
+                showNotification('Login successful!');
+            } else {
+                document.getElementById('loginError').textContent = result.error;
+            }
+        });
+
+        // Register Form Handler
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('registerUsername').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+
+            const result = await AuthManager.signUp(email, password, username);
+            if (result.success) {
+                showNotification('Registration successful! Please check your email to verify your account.');
+                closeAuthModal();
+            } else {
+                document.getElementById('registerError').textContent = result.error;
+            }
+        });
+
+        async function logout() {
+            const result = await AuthManager.signOut();
+            if (result.success) {
+                currentUser = null;
+                isAuthenticated = false;
+                updateAuthUI();
+                await loadGame(); // Reload game data (will fallback to localStorage)
+                showNotification('Logged out successfully!');
+            }
+        }
+
+        // Game Functions (updated to use Supabase)
+        async function loadGame() {
+            try {
+                const savedData = await GameDataManager.loadGameData();
+                if (savedData) {
+                    gameState = { ...gameState, ...savedData };
+                    gameState.achievements = new Set(gameState.achievements);
+                }
+            } catch (error) {
+                console.error('Error loading game:', error);
+            }
+        }
+
+        async function saveGame() {
+            try {
+                await GameDataManager.saveGameData(gameState);
+            } catch (error) {
+                console.error('Error saving game:', error);
+            }
+        }
+
+        async function clickBread() {
+            const clickPower = gameState.breadPerClick * gameState.prestigeMultiplier;
+            gameState.bread += clickPower;
+            gameState.totalBread += clickPower;
+            gameState.stats.totalClicks++;
+            gameState.experience += clickPower;
+
+            // Show click effect
+            showClickEffect(clickPower);
+
+            // Check for level up
+            checkLevelUp();
+
+            // Check achievements
+            checkAchievements();
+
+            // Log activity
+            if (isAuthenticated) {
+                await GameDataManager.logActivity('bread_click', { amount: clickPower });
+            }
+
+            updateDisplay();
+            await saveGame();
+        }
+
+        // Show Click Effect
+        function showClickEffect(amount) {
+            const button = document.getElementById('breadButton');
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            effect.textContent = `+${formatNumber(amount)}`;
+            effect.style.left = Math.random() * 200 + 'px';
+            effect.style.top = Math.random() * 200 + 'px';
+            button.appendChild(effect);
+
+            setTimeout(() => {
+                effect.remove();
+            }, 1000);
+        }
+
+        // Check Level Up
+        function checkLevelUp() {
+            const requiredExp = gameState.playerLevel * 1000;
+            if (gameState.experience >= requiredExp) {
+                gameState.playerLevel++;
+                gameState.experience -= requiredExp;
+                showNotification(`Level Up! You are now level ${gameState.playerLevel}!`);
+            }
+        }
+
+        // Check Achievements
+        function checkAchievements() {
+            achievements.forEach(achievement => {
+                if (gameState.achievements.has(achievement.id)) return;
+
+                let unlocked = false;
+                switch (achievement.type) {
+                    case 'clicks':
+                        unlocked = gameState.stats.totalClicks >= achievement.requirement;
+                        break;
+                    case 'bread':
+                        unlocked = gameState.totalBread >= achievement.requirement;
+                        break;
+                    case 'upgrades':
+                        unlocked = Object.keys(gameState.upgrades.click).length >= achievement.requirement;
+                        break;
+                    case 'auto':
+                        unlocked = Object.keys(gameState.upgrades.auto).length >= achievement.requirement;
+                        break;
+                    case 'prestige':
+                        unlocked = gameState.prestigeLevel >= achievement.requirement;
+                        break;
+                }
+
+                if (unlocked) {
+                    gameState.achievements.add(achievement.id);
+                    showNotification(`Achievement Unlocked: ${achievement.name}!`);
+                }
+            });
+        }
+
+        // Buy Click Upgrade
+        async function buyClickUpgrade(upgradeId) {
+            const upgrade = clickUpgrades.find(u => u.id === upgradeId);
+            if (!upgrade) return;
+
+            const currentLevel = gameState.upgrades.click[upgradeId] || 0;
+            const cost = Math.floor(upgrade.cost * Math.pow(1.5, currentLevel));
+
+            if (gameState.bread >= cost) {
+                gameState.bread -= cost;
+                gameState.upgrades.click[upgradeId] = (currentLevel + 1);
+                gameState.breadPerClick += upgrade.bonus;
+                showNotification(`Bought ${upgrade.name}!`);
+                updateDisplay();
+                renderUpgrades();
+                await saveGame();
+            }
+        }
+
+        // Buy Auto Upgrade
+        async function buyAutoUpgrade(upgradeId) {
+            const upgrade = autoUpgrades.find(u => u.id === upgradeId);
+            if (!upgrade) return;
+
+            const currentLevel = gameState.upgrades.auto[upgradeId] || 0;
+            const cost = Math.floor(upgrade.cost * Math.pow(1.5, currentLevel));
+
+            if (gameState.bread >= cost) {
+                gameState.bread -= cost;
+                gameState.upgrades.auto[upgradeId] = (currentLevel + 1);
+                gameState.breadPerSecond += upgrade.production;
+                showNotification(`Bought ${upgrade.name}!`);
+                updateDisplay();
+                renderUpgrades();
+                await saveGame();
+            }
+        }
+
+        // Buy Shop Item
+        async function buyShopItem(itemId) {
+            const item = breadShop.find(i => i.id === itemId);
+            if (!item) return;
+
+            if (gameState.shop[itemId]) return; // Already owned
+
+            if (gameState.bread >= item.cost) {
+                gameState.bread -= item.cost;
+                gameState.shop[itemId] = true;
+                showNotification(`Bought ${item.name}!`);
+                updateDisplay();
+                renderShop();
+                await saveGame();
+            }
+        }
+
+        // Prestige Function
+        async function prestige() {
+            if (gameState.totalBread < 1000000) return;
+
+            const prestigeBonus = Math.floor(gameState.totalBread / 1000000);
+            gameState.prestigeLevel++;
+            gameState.prestigeMultiplier += prestigeBonus * 0.1;
+            
+            // Reset progress
+            gameState.bread = 0;
+            gameState.breadPerClick = 1;
+            gameState.breadPerSecond = 0;
+            gameState.upgrades = { click: {}, auto: {} };
+            gameState.shop = {};
+            gameState.playerLevel = 1;
+            gameState.experience = 0;
+            gameState.stats.totalClicks = 0;
+
+            showNotification(`Prestige Complete! +${prestigeBonus * 0.1}x multiplier!`);
+            updateDisplay();
+            renderUpgrades();
+            renderShop();
+            await saveGame();
+        }
+
+        // Render Functions (same as before)
+        function renderUpgrades() {
+            const clickUpgradesDiv = document.getElementById('clickUpgrades');
+            const autoUpgradesDiv = document.getElementById('autoUpgrades');
+
+            clickUpgradesDiv.innerHTML = '';
+            autoUpgradesDiv.innerHTML = '';
+
+            clickUpgrades.forEach(upgrade => {
+                const currentLevel = gameState.upgrades.click[upgrade.id] || 0;
+                const cost = Math.floor(upgrade.cost * Math.pow(1.5, currentLevel));
+                const affordable = gameState.bread >= cost;
+
+                const upgradeDiv = document.createElement('div');
+                upgradeDiv.className = `upgrade-item ${affordable ? 'affordable' : ''}`;
+                upgradeDiv.innerHTML = `
+                    <div class="upgrade-name">${upgrade.emoji} ${upgrade.name} (Lv.${currentLevel})</div>
+                    <div class="upgrade-description">${upgrade.description}</div>
+                    <div class="upgrade-cost">Cost: ${formatNumber(cost)} bread</div>
+                `;
+                upgradeDiv.onclick = () => buyClickUpgrade(upgrade.id);
+                clickUpgradesDiv.appendChild(upgradeDiv);
+            });
+
+            autoUpgrades.forEach(upgrade => {
+                const currentLevel = gameState.upgrades.auto[upgrade.id] || 0;
+                const cost = Math.floor(upgrade.cost * Math.pow(1.5, currentLevel));
+                const affordable = gameState.bread >= cost;
+
+                const upgradeDiv = document.createElement('div');
+                upgradeDiv.className = `upgrade-item ${affordable ? 'affordable' : ''}`;
+                upgradeDiv.innerHTML = `
+                    <div class="upgrade-name">${upgrade.emoji} ${upgrade.name} (Lv.${currentLevel})</div>
+                    <div class="upgrade-description">${upgrade.description}</div>
+                    <div class="upgrade-cost">Cost: ${formatNumber(cost)} bread</div>
+                `;
+                upgradeDiv.onclick = () => buyAutoUpgrade(upgrade.id);
+                autoUpgradesDiv.appendChild(upgradeDiv);
+            });
+        }
+
+        function renderShop() {
+            const shopDiv = document.getElementById('breadShop');
+            shopDiv.innerHTML = '';
+
+            breadShop.forEach(item => {
+                const owned = gameState.shop[item.id];
+                const affordable = !owned && gameState.bread >= item.cost;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `shop-item ${affordable ? 'affordable' : ''} ${owned ? 'owned' : ''}`;
+                itemDiv.innerHTML = `
+                    <div>${item.emoji}</div>
+                    <div class="shop-item-name">${item.name}</div>
+                    <div class="shop-item-cost">${owned ? 'OWNED' : formatNumber(item.cost)}</div>
+                `;
+                if (!owned) {
+                    itemDiv.onclick = () => buyShopItem(item.id);
+                }
+                shopDiv.appendChild(itemDiv);
+            });
+        }
+
+        function renderAchievements() {
+            const achievementsDiv = document.getElementById('achievementsList');
+            achievementsDiv.innerHTML = '';
+
+            achievements.forEach(achievement => {
+                const unlocked = gameState.achievements.has(achievement.id);
+                const achievementDiv = document.createElement('div');
+                achievementDiv.className = `achievement ${unlocked ? 'unlocked' : ''}`;
+                achievementDiv.innerHTML = `
+                    <div>${achievement.emoji} ${achievement.name}</div>
+                    <div style="font-size: 0.8em;">${achievement.description}</div>
+                `;
+                achievementsDiv.appendChild(achievementDiv);
+            });
+        }
+
+        async function renderLeaderboard() {
+            const leaderboardDiv = document.getElementById('leaderboard');
+            leaderboardDiv.innerHTML = '';
+
+            try {
+                const leaderboard = await GameDataManager.getLeaderboard();
+                leaderboard.forEach((player, index) => {
+                    const playerDiv = document.createElement('div');
+                    playerDiv.className = 'leaderboard-item';
+                    playerDiv.innerHTML = `
+                        <span class="leaderboard-rank">#${index + 1}</span>
+                        <span class="leaderboard-name">${player.username}</span>
+                        <span class="leaderboard-score">${formatNumber(player.total_bread)}</span>
+                    `;
+                    leaderboardDiv.appendChild(playerDiv);
+                });
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+                leaderboardDiv.innerHTML = '<div>Unable to load leaderboard</div>';
+            }
+        }
+
+        // Update Display
+        function updateDisplay() {
+            document.getElementById('breadCount').textContent = formatNumber(gameState.bread);
+            document.getElementById('totalBread').textContent = formatNumber(gameState.totalBread);
+            document.getElementById('breadPerClick').textContent = formatNumber(gameState.breadPerClick * gameState.prestigeMultiplier);
+            document.getElementById('clickPower').textContent = formatNumber(gameState.breadPerClick * gameState.prestigeMultiplier);
+            document.getElementById('breadPerSecond').textContent = formatNumber(gameState.breadPerSecond * gameState.prestigeMultiplier);
+            document.getElementById('prestigeLevel').textContent = gameState.prestigeLevel;
+            document.getElementById('playerLevel').textContent = gameState.playerLevel;
+            document.getElementById('prestigeMultiplier').textContent = gameState.prestigeMultiplier.toFixed(1) + 'x';
+            document.getElementById('prestigeRequirement').textContent = formatNumber(1000000);
+            
+            const prestigeButton = document.getElementById('prestigeButton');
+            if (gameState.totalBread >= 1000000) {
+                prestigeButton.disabled = false;
+                prestigeButton.textContent = `Prestige (+${Math.floor(gameState.totalBread / 1000000) * 0.1}x)`;
+            } else {
+                prestigeButton.disabled = true;
+                prestigeButton.textContent = 'Prestige (0x)';
+            }
+        }
+
+        // Switch Tab
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Show Notification
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Format Number
+        function formatNumber(num) {
+            if (num >= 1e12) return (num / 1e12).toFixed(1) + 'T';
+            if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+            return Math.floor(num).toString();
+        }
+
+        // Game Loop
+        function startGameLoop() {
+            setInterval(async () => {
+                if (gameState.breadPerSecond > 0) {
+                    const production = gameState.breadPerSecond * gameState.prestigeMultiplier;
+                    gameState.bread += production;
+                    gameState.totalBread += production;
+                    gameState.experience += production;
+                    checkLevelUp();
+                    updateDisplay();
+                }
+                
+                gameState.stats.timePlayed = Math.floor((Date.now() - gameState.stats.startTime) / 1000);
+            }, 1000);
+
+            // Auto-save every 30 seconds
+            setInterval(async () => {
+                await saveGame();
+            }, 30000);
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('authModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        // Handle logo click for admin access
+        function handleLogoClick() {
+            if (userRole === 1) {
+                // Admin access - open admin panel
+                window.open('admin-supabase.html', '_blank');
+            } else {
+                // Regular user - do nothing or show message
+                console.log('Admin access required');
+            }
+        }
+
+        // Add logo click event listener
+        document.addEventListener('DOMContentLoaded', function() {
+            const logo = document.querySelector('.logo');
+            if (logo) {
+                logo.addEventListener('click', handleLogoClick);
+            }
+        });
+
+        // Initialize when page loads
+        window.onload = initGame;
+    </script>
+</body>
+</html>
